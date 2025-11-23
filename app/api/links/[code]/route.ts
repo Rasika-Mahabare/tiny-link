@@ -1,17 +1,11 @@
-import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { NextResponse } from "next/server";
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { code: string } }
-) {
+export async function GET(req: Request, { params }: any) {
   const code = params.code;
+  const result = await sql`SELECT * FROM links WHERE code = ${code}`;
 
-  const result = await sql`DELETE FROM links WHERE code = ${code} RETURNING *`;
+  if (!result?.rowCount) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (result.rowCount === 0) {
-    return NextResponse.json({ error: "Link not found" }, { status: 404 });
-  }
-
-  return NextResponse.json({ success: true });
+  return NextResponse.json(result.rows[0]);
 }
